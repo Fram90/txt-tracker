@@ -9,6 +9,6 @@ namespace TestApp
 {
     interface IObserver
     {
-        void Update(IListener listener);
+        void Update(Listener listener);
     }
 }

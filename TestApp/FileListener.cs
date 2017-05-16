@@ -9,44 +9,23 @@ namespace TestApp
 {
     class FileListener : Listener
     {
-        private string folderPath;
-        private string fileName;
         private int position;
-        private IList<IObserver> observers;
 
-        public FileListener(string filePath)
+        public FileListener(string filePath) : base(filePath)
         {
-            observers = new List<IObserver>();
+            position = GetInitialSize(filePath);
         }
 
         public void Run(string[] args)
         {
             var watcher = new FileSystemWatcher
             {
-                Path = folderPath,
+                Path = FileFolder,
                 NotifyFilter = NotifyFilters.LastWrite,
-                Filter = fileName
+                Filter = FileName
             };
             watcher.Changed += OnChanged;
             watcher.EnableRaisingEvents = true;
-        }
-
-        public void Attach(IObserver observer)
-        {
-            observers.Add(observer);
-        }
-
-        public void Detach(IObserver observer)
-        {
-            observers.Remove(observer);
-        }
-
-        public void Notify()
-        {
-            foreach (var observer in observers)
-            {
-                observer.Update();
-            }
         }
 
         private void OnChanged(object source, FileSystemEventArgs e)
@@ -69,8 +48,10 @@ namespace TestApp
                 currentPos++;
                 if (currentPos > position)
                 {
+                    Message = line;
                     Notify();
                 }
+
             }
             position = currentPos;
         }

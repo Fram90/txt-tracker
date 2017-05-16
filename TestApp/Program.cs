@@ -7,8 +7,7 @@ namespace TestApp
 {
     class Program
     {
-        static string fileName;
-        static string folderPath;
+        static string filePath;
 
         static void Main(string[] args)
         {
@@ -21,10 +20,17 @@ namespace TestApp
 
             ParseArgs(new Queue<string>(args));
 
-            var listener = new FileListener();
-            listener
+            var obs = new ConsoleObserver();
+
+            var listener = new FileListener(filePath);
+
+            listener.Attach(obs);
+
             listener.Run(args);
-            
+
+            Console.ReadLine();
+
+            listener.Detach(obs);
 
             Console.ReadLine();
         }
@@ -36,9 +42,8 @@ namespace TestApp
             switch (arg)
             {
                 case "-f":
-                    var filePath = args.Dequeue();
-                    fileName = filePath.Split('/').Last();
-                    folderPath = filePath.Substring(0, filePath.Length - fileName.Length);
+                    var path = args.Dequeue();
+                    filePath = Path.GetFullPath(path);
                     break;
                 default:
                     Console.WriteLine("Unknown parameter");

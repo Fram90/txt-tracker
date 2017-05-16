@@ -8,17 +8,22 @@ namespace TestApp
 {
     class ConsoleObserver : IObserver
     {
-        private readonly string _file;
-        private readonly string _message;
+        //private readonly string _file;
+        //private readonly string _message;
 
-        public ConsoleObserver(string file, string message)
+        //public ConsoleObserver()
+        //{
+
+        //}
+
+        //public ConsoleObserver(Func<bool,string> str )
+        //{
+            
+        //}
+
+        public void Update(Listener listener)
         {
-            _file = file;
-            _message = message;
-        }
-        public void Update()
-        {
-            Console.WriteLine($"File: {_file}._Message: {_message}");
+            Console.WriteLine($"File: {listener.FileName}\tMessage: {listener.Message}");
         }
     }
 }
