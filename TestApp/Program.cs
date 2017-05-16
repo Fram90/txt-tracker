@@ -1,45 +1,95 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.DirectoryServices;
+using System.IO;
 using System.Linq;
 
 namespace TestApp
 {
     class Program
     {
+        private static string filePath;
+        private static string fileName;
+        private static int position;
+
         static void Main(string[] args)
         {
-            var zxc = 3 / 7;
-            using (var directoryEntry = new DirectoryEntry(@"LDAP://hq-dc1.office.auriga.msk/DC=office,DC=auriga,DC=msk"))
+            if (!args.Any())
             {
-                using (var directorySearcher = new DirectorySearcher(directoryEntry))
-                {
-                    directorySearcher.Filter =
-                        $"(&(&(objectClass=user)(objectClass=person)))";
-                    directorySearcher.SizeLimit = 9999999;
-                    directorySearcher.PageSize = 9999999;
-                    directorySearcher.ServerTimeLimit = new TimeSpan(0, 0, 15, 0);
-                    directorySearcher.PropertiesToLoad.Add("employeeID");
-                    directorySearcher.PropertiesToLoad.Add("sAMAccountName");
-                    directorySearcher.PropertiesToLoad.Add("thumbnailPhoto");
-                    directorySearcher.PropertiesToLoad.Add("givenName");
-                    directorySearcher.PropertiesToLoad.Add("sn");
-                    using (var users = directorySearcher.FindAll())
-                    {
-                        foreach (SearchResult entry in users)
-                        {
-                            var test = entry.Properties["samaccountname"];
-                        }
-                    }
-                }
+                Console.WriteLine("Input arguments (-f <filepath>):");
+                var input = Console.ReadLine();
+                args = input?.Split(' ') ?? new string[] { };
             }
+
+            ParseArgs(new Queue<string>(args));
+
+            var watcher = new FileSystemWatcher
+            {
+                Path = filePath,
+                NotifyFilter = NotifyFilters.LastWrite,
+                Filter = fileName
+            };
+            position = GetInitialSize(filePath + fileName);
+            watcher.Changed += OnChanged;
+            watcher.EnableRaisingEvents = true;
+
+
+            Console.WriteLine("Listening to the file...");
 
             Console.ReadLine();
         }
-    }
 
-    class A
-    {
-        public List<int> List { get; set; }
+        private static void ParseArgs(Queue<string> args)
+        {
+            var arg = args.Dequeue();
+
+            switch (arg)
+            {
+                case "-f":
+                    filePath = args.Dequeue();
+                    fileName = filePath.Split('/').Last();
+                    filePath = filePath.Substring(0, filePath.Length - fileName.Length);
+                    break;
+                default:
+                    Console.WriteLine("Unknown parameter");
+                    break;
+            }
+
+            if (args.Any())
+            {
+                ParseArgs(args);
+            }
+        }
+
+        private static void OnChanged(object source, FileSystemEventArgs e)
+        {
+            var file = new List<string>();
+
+            using (var fs = new FileStream(e.FullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (var sr = new StreamReader(fs))
+            {
+                while (!sr.EndOfStream)
+                {
+                    file.Add(sr.ReadLine());
+                }
+
+            }
+
+            int currentPos = 0;
+
+            foreach (var line in file)
+            {
+                currentPos++;
+                if (currentPos > position)
+                {
+                    Console.WriteLine(line);
+                }
+            }
+            position = currentPos;
+        }
+
+        private static int GetInitialSize(string path)
+        {
+            return File.ReadLines(path).Count();
+        }
     }
 }
