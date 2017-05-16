@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using TestApp.Abstract;
 
-namespace TestApp
+namespace TestApp.Concrete
 {
     class ConsoleObserver : IObserver
     {
