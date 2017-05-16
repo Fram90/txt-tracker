@@ -28,7 +28,7 @@ namespace TestApp
                 NotifyFilter = NotifyFilters.LastWrite,
                 Filter = fileName
             };
-            position = GetInitialSize(filePath + fileName);
+            position = GetInitialSize(Path.Combine(filePath,fileName));
             watcher.Changed += OnChanged;
             watcher.EnableRaisingEvents = true;
 
@@ -45,9 +45,9 @@ namespace TestApp
             switch (arg)
             {
                 case "-f":
-                    filePath = args.Dequeue();
-                    fileName = filePath.Split('/').Last();
-                    filePath = filePath.Substring(0, filePath.Length - fileName.Length);
+                    var path = args.Dequeue();
+                    filePath = Path.GetDirectoryName(path);
+                    fileName = Path.GetFileName(path);
                     break;
                 default:
                     Console.WriteLine("Unknown parameter");
