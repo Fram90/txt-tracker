@@ -7,9 +7,8 @@ namespace TestApp
 {
     class Program
     {
-        private static string filePath;
-        private static string fileName;
-        private static int position;
+        static string fileName;
+        static string folderPath;
 
         static void Main(string[] args)
         {
@@ -22,18 +21,10 @@ namespace TestApp
 
             ParseArgs(new Queue<string>(args));
 
-            var watcher = new FileSystemWatcher
-            {
-                Path = filePath,
-                NotifyFilter = NotifyFilters.LastWrite,
-                Filter = fileName
-            };
-            position = GetInitialSize(filePath + fileName);
-            watcher.Changed += OnChanged;
-            watcher.EnableRaisingEvents = true;
-
-
-            Console.WriteLine("Listening to the file...");
+            var listener = new FileListener();
+            listener
+            listener.Run(args);
+            
 
             Console.ReadLine();
         }
@@ -45,9 +36,9 @@ namespace TestApp
             switch (arg)
             {
                 case "-f":
-                    filePath = args.Dequeue();
+                    var filePath = args.Dequeue();
                     fileName = filePath.Split('/').Last();
-                    filePath = filePath.Substring(0, filePath.Length - fileName.Length);
+                    folderPath = filePath.Substring(0, filePath.Length - fileName.Length);
                     break;
                 default:
                     Console.WriteLine("Unknown parameter");
@@ -58,38 +49,6 @@ namespace TestApp
             {
                 ParseArgs(args);
             }
-        }
-
-        private static void OnChanged(object source, FileSystemEventArgs e)
-        {
-            var file = new List<string>();
-
-            using (var fs = new FileStream(e.FullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            using (var sr = new StreamReader(fs))
-            {
-                while (!sr.EndOfStream)
-                {
-                    file.Add(sr.ReadLine());
-                }
-
-            }
-
-            int currentPos = 0;
-
-            foreach (var line in file)
-            {
-                currentPos++;
-                if (currentPos > position)
-                {
-                    Console.WriteLine(line);
-                }
-            }
-            position = currentPos;
-        }
-
-        private static int GetInitialSize(string path)
-        {
-            return File.ReadLines(path).Count();
         }
     }
 }
